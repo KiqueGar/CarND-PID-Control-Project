@@ -19,6 +19,19 @@ public:
   double Kd;
 
   /*
+  * Twiddle vars
+  */
+  bool twiddle_tunning = false;
+  bool twiddle_initialized =false;
+  double delta_p;
+  double delta_i;
+  double delta_d;
+  int steady_steps;
+  int current_step;
+  float best_error;
+  float cumulative_error;
+
+  /*
   * Constructor
   */
   PID();
@@ -42,6 +55,14 @@ public:
   * Calculate the total PID error.
   */
   double TotalError();
+
+  /*
+  * Twiddle
+  */
+  void Twiddle(double cte);
+
+  void EvalSteady(int total_steps);
+
 };
 
 #endif /* PID_H */

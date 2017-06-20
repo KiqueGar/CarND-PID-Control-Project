@@ -30,6 +30,10 @@ void PID::UpdateError(double cte) {
 
 double PID::TotalError() {
 	double error = -(p_error*Kp + i_error*Ki + d_error*Kp);
+	if (PID::twiddle_tunning){
+		EvalSteady(steady_steps);
+
+	}
 	if (error<-1){
 		return -1;
 	}
@@ -39,3 +43,25 @@ double PID::TotalError() {
 	return error;
 }
 
+void PID::Twiddle(double cte){
+   if (!PID::twiddle_initialized){
+   	Init(0, 0, 0);
+   	PID::delta_p = 1; 
+   	PID::delta_i = 1;
+   	PID::delta_d = .5;
+   	PID::steady_steps = 0;
+   	PID::twiddle_initialized = true;
+   	PID::cumulative_error= 0;
+   }
+
+   //PID::best_error = EvalSteady(steady_steps);
+
+}
+
+void PID::EvalSteady(int total_steps){
+	past_cte = 0;
+	if(PID::steady_steps >= total_steps){
+		PID::best_error = PID::cumulative_error / total_steps;
+	}
+
+}
