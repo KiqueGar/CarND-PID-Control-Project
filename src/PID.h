@@ -1,5 +1,7 @@
 #ifndef PID_H
 #define PID_H
+#include <vector>
+#include <iostream>
 
 class PID {
 public:
@@ -21,11 +23,11 @@ public:
   /*
   * Twiddle vars
   */
-  bool twiddle_tunning = false;
-  bool twiddle_initialized =false;
-  double delta_p;
-  double delta_i;
-  double delta_d;
+  bool twiddle_tunning;
+  bool adding, substracting;
+  bool twiddle_initialized =false;    //???
+  std::vector<double> dp;
+  int param_index;
   int steady_steps;
   int current_step;
   float best_error;
@@ -57,11 +59,9 @@ public:
   double TotalError();
 
   /*
-  * Twiddle
+  * Tune parameter
   */
-  void Twiddle(double cte);
-
-  void EvalSteady(int total_steps);
+  void TuneParameter(int index, double value);
 
 };
 
