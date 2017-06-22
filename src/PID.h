@@ -30,6 +30,7 @@ public:
   int param_index;
   int steady_steps;
   int current_step;
+  int eval_steps;
   float best_error;
   float cumulative_error;
 
@@ -46,7 +47,7 @@ public:
   /*
   * Initialize PID.
   */
-  void Init(double Kp, double Ki, double Kd);
+  void Init(double Kp, double Ki, double Kd, bool tune);
 
   /*
   * Update the PID error variables given cross track error.

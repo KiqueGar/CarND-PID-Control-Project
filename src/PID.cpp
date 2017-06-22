@@ -10,7 +10,7 @@ PID::PID() {}
 
 PID::~PID() {}
 
-void PID::Init(double Kp, double Ki, double Kd) {
+void PID::Init(double Kp, double Ki, double Kd, bool tune) {
 	PID::Kp = Kp;
 	PID::Ki = Ki;
 	PID::Kd = Kd;
@@ -19,12 +19,13 @@ void PID::Init(double Kp, double Ki, double Kd) {
 	PID::i_error = 0;
 	PID::past_cte = 0;
 
-	PID::twiddle_tunning = true;
+	PID::twiddle_tunning = tune;
 	dp= {0.1*Kp, 0.1*Ki, 0.1*Kd};
 	current_step =1;
 	//Start tunning on Kd
-	param_index=2;
-	steady_steps = 100;
+	param_index=0;
+	steady_steps = 80;
+	eval_steps = 2200;
 	cumulative_error=0;
 	best_error = 999999999;
 	adding = false;
@@ -37,20 +38,21 @@ void PID::UpdateError(double cte) {
 	i_error += cte;
 	p_error = cte;
 
-	//Update cumulative error after 2 steady cicles
-	if (current_step % (steady_steps*3) > steady_steps){
+	//Update cumulative error after a steady cicle
+	if (current_step % (steady_steps+ eval_steps) > steady_steps){
 		cumulative_error += cte*cte;
 	}
 
 	//Update k's
-	if(twiddle_tunning && current_step % (steady_steps*3) == 0){
+	if(twiddle_tunning && current_step % (steady_steps + eval_steps) == 0){
 		cout << "Step: " << current_step << endl;
 		cout << "Cumulative Error: " << cumulative_error << endl;
 		cout << "Best Error: " << best_error << endl;
-		cout << "		PID coeficients:	" << Kp << "	" << Ki << "	" << Kd << endl;
+//		cout << "PID coeficients:	" << Kp << "	" << Ki << "	" << Kd << endl;
 		if (cumulative_error< best_error){
+			cout << "Best coeficients:	" << Kp << "	" << Ki << "	" << Kd << endl;
 			best_error = cumulative_error;
-			if(current_step != 3*steady_steps){
+			if(current_step != steady_steps + eval_steps){
 				dp[param_index] *=1.1;
 			}
 			//next parameter
@@ -72,6 +74,9 @@ void PID::UpdateError(double cte) {
 			TuneParameter(param_index, dp[param_index]);
 			dp[param_index]*=0.9;
 			param_index = (param_index + 1)%3;
+			if(dp[param_index]==0){
+				param_index = (param_index + 1)%3;
+			}
 			adding = substracting = false;
 		}
 		cumulative_error = 0;
