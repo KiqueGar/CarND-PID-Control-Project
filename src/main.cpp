@@ -35,9 +35,12 @@ int main()
   PID pid;
   PID pid_sp;
   // TODO: Initialize the pid variable.
-  pid.Init(.7, 0.00003955,1.142, true);
-  pid_sp.Init(.2, 0, .005, false);
-
+  //Increase P until oscillations begin
+ // pid.Init(.15,0,0, false);
+  //Counted 5 Oscillations, mean time =4.91
+  //pid.Init(.15*.6, 1.2*491e-7,1*4.91, true);
+  pid.Init(.108801, 7.77096e-5, 5.9411, false);
+  pid_sp.Init(.6, 45e-5, .5, false);
   h.onMessage([&pid, &pid_sp](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
     // "42" at the start of the message means there's a websocket message event.
     // The 4 signifies a websocket message
@@ -55,14 +58,22 @@ int main()
           double angle = std::stod(j[1]["steering_angle"].get<std::string>());
           double steer_value;
           double throttle_value;
-          double speed_setpoint = 22;
+          double speed_setpoint = 20;
           /*
           * TODO: Calcuate steering value here, remember the steering value is
           * [-1, 1].
           * NOTE: Feel free to play around with the throttle and speed. Maybe use
           * another PID controller to control the speed!
           */
-          pid_sp.UpdateError(speed + cte*cte - (speed_setpoint));
+          
+          double cte_sp = cte*cte;
+          if (cte_sp<1.5){
+            cte_sp = 0;
+          }
+          
+          pid_sp.UpdateError(speed - (speed_setpoint*(1-(cte_sp/45))));
+          //pid_sp.UpdateError(speed - speed_setpoint);
+
           pid.UpdateError(cte);
           steer_value = pid.TotalError();
           throttle_value = pid_sp.TotalError();

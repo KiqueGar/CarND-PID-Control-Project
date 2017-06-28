@@ -5,7 +5,8 @@ using namespace std;
 /*
 * TODO: Complete the PID class.
 */
-
+//bool fast_correct = false;
+double cte_debug;
 PID::PID() {}
 
 PID::~PID() {}
@@ -22,9 +23,10 @@ void PID::Init(double Kp, double Ki, double Kd, bool tune) {
 	PID::twiddle_tunning = tune;
 	dp= {0.1*Kp, 0.1*Ki, 0.1*Kd};
 	current_step =1;
+	fast_steps =1;
 	//Start tunning on Kd
-	param_index=0;
-	steady_steps = 80;
+	param_index=1;
+	steady_steps = 300;
 	eval_steps = 2200;
 	cumulative_error=0;
 	best_error = 999999999;
@@ -37,20 +39,30 @@ void PID::UpdateError(double cte) {
 	past_cte = cte;
 	i_error += cte;
 	p_error = cte;
+	cte_debug = cte;
 
 	//Update cumulative error after a steady cicle
-	if (current_step % (steady_steps+ eval_steps) > steady_steps){
+	if (fast_steps % (steady_steps+ eval_steps) > steady_steps){
 		cumulative_error += cte*cte;
+		if(cumulative_error > best_error && twiddle_tunning){
+			cout << "Worsening! Next iteration" << endl;
+			fast_steps = 0;
+		}
+		if(best_error<1.2*(eval_steps+steady_steps) && twiddle_tunning){
+			twiddle_tunning = false;
+			cout << "Finished Tunning!!"<< endl;
+			cout << "Best coeficients:	" << Kp << "	" << Ki << "	" << Kd << endl << endl;
+		}
 	}
 
 	//Update k's
-	if(twiddle_tunning && current_step % (steady_steps + eval_steps) == 0){
+	if(twiddle_tunning && fast_steps % (steady_steps + eval_steps) == 0){
 		cout << "Step: " << current_step << endl;
 		cout << "Cumulative Error: " << cumulative_error << endl;
-		cout << "Best Error: " << best_error << endl;
+		cout << "Best Error: " << best_error << endl << endl;
 //		cout << "PID coeficients:	" << Kp << "	" << Ki << "	" << Kd << endl;
 		if (cumulative_error< best_error){
-			cout << "Best coeficients:	" << Kp << "	" << Ki << "	" << Kd << endl;
+			cout << "Best coeficients:	" << Kp << "	" << Ki << "	" << Kd << endl << endl;
 			best_error = cumulative_error;
 			if(current_step != steady_steps + eval_steps){
 				dp[param_index] *=1.1;
@@ -80,12 +92,16 @@ void PID::UpdateError(double cte) {
 			adding = substracting = false;
 		}
 		cumulative_error = 0;
+
 	}
 	current_step++;
+	fast_steps++;
 }
 
 double PID::TotalError() {
 	double error = -(p_error*Kp + i_error*Ki + d_error*Kp);
+	//cout << "Pecentage of contribution in cte: " << cte_debug << endl;
+	//cout << p_error*Kp/error <<"   "<< i_error*Ki/error <<"   " << d_error*Kp/error << endl;
 	if (error<-1){
 		return -1;
 	}

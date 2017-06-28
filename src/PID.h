@@ -25,12 +25,12 @@ public:
   */
   bool twiddle_tunning;
   bool adding, substracting;
-  bool twiddle_initialized =false;    //???
   std::vector<double> dp;
   int param_index;
   int steady_steps;
   int current_step;
   int eval_steps;
+  int fast_steps;
   float best_error;
   float cumulative_error;
 
