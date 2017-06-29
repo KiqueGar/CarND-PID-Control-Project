@@ -3,6 +3,48 @@ Self-Driving Car Engineer Nanodegree Program
 
 ---
 
+## Introduction
+The objective was to implement and tune a PID controller for a simulator.
+The simulated car provides CTE and speed, and takes as arguments steering
+angle and throttle position, the car must complete a lap around the track safely.
+
+--- 
+### Efects of the PID Component
+
+#### P component
+The P component causes the control to compensate proportionally to the error,
+this is the basic control, small error yields small change, big error, yields
+big change. However, there is a point from which increasing the P gain causes
+unstability, as overshoot gets larger and larger. The top of it is reached when
+the system oscillates around the setpoint but doesn't decrease, nor increase.
+In the car, the main effect is seen as a hard turn.
+
+### I component
+The I component causes the control to compensate proportionally to the integral
+of the error, thus compensating proportional to the time the error is sustained,
+usually is small, as it can easily overcome the action of the P component given
+enough time, this can be seen as increasingly oscilations. When correctly tuned,
+the I component provides a smoother trajectory to the setpoint, reduced
+oveshoot and noise inmunity. Is usually the last parameter to tune. The I 
+component by itself might not drive the controller (as in a starting position of 0)
+In the car, the main effect is seen as a correction of steering given the time
+elapsed, if the car was at a distance from center for a time, the steering will
+increase proportional to the time elapsed. 
+
+### D component
+The D component is proportional to the sudden difference of the error, thus,
+giving some inertia against fast changes in the setpoint. This parameter also
+decreases the response time (a faster reaction), however, if too big, makes
+the controller react heavily to noise. Is usually the second parameter to tune,
+as this one changes the oscillation to the steady state (reaching setpoint).
+The P parameter might not drive the car by itself, as a 0 difference in error
+will have no effect on the correction.
+In the car, the main effect is seen taking a turn, as the error keeps growing,
+the steering changes more than with just the P gain.
+
+---
+### Original Udacity Readme Ahead
+----
 ## Dependencies
 
 * cmake >= 3.5
